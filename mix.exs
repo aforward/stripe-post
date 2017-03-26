@@ -41,13 +41,12 @@ defmodule StripePost.Mixfile do
     [{:mix_test_watch, "~> 0.3", only: :dev, runtime: false},
      {:poison, "~> 3.1.0"},
      {:httpoison, "~> 0.11.1"},
-     {:ex_doc, ">= 0.0.0", only: :dev},
-     {:hackney, "1.6.1", override: true}]
+     {:ex_doc, ">= 0.0.0", only: :dev}]
   end
 
   defp package do
     [name: :stripe_post,
-     files: ["lib", "priv", "mix.exs", "README*", "README*", "LICENSE*"],
+     files: ["lib", "mix.exs", "README*", "README*", "LICENSE*"],
      maintainers: ["Andrew Forward"],
      licenses: ["MIT"],
      links: %{"GitHub" => @git_url}]

@@ -1,11 +1,10 @@
 # StripePost
 
-**TODO: Add description**
+A minimal library for posting messages to the Stripe API.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `stripe_post` to your list of dependencies in `mix.exs`:
+Add `stripe_post` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -13,7 +12,5 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
+Documentation can
 be found at [https://hexdocs.pm/stripe_post](https://hexdocs.pm/stripe_post).
-
