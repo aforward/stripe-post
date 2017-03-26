@@ -39,7 +39,10 @@ defmodule StripePost.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:mix_test_watch, "~> 0.3", only: :dev, runtime: false},
-     {:ex_doc, ">= 0.0.0", only: :dev}]
+     {:poison, "~> 3.1.0"},
+     {:httpoison, "~> 0.11.1"},
+     {:ex_doc, ">= 0.0.0", only: :dev},
+     {:hackney, "1.6.1", override: true}]
   end
 
   defp package do

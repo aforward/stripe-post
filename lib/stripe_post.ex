@@ -1,18 +1,8 @@
 defmodule StripePost do
   @moduledoc """
-  Documentation for StripePost.
+  A minimal library for posting messages to the Stripe API.
   """
 
-  @doc """
-  Hello world.
+  defdelegate post(url, body, headers), to: StripePost.Worker
 
-  ## Examples
-
-      iex> StripePost.hello
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end
