@@ -25,9 +25,24 @@ defmodule StripePost.Api do
   Charge an account with the following body configurations
 
     body = %{amount: 10000, currency: "cad", description: "3 wozzle", source: "pk_abc_123"}
-    configs = %{secret_key: "sk_test_abc123"}
+
+  The configurations are optional, and can be (preferrably) configured as elixir configs,
+  like:
+
+    config :stripe_post,
+      secret_key: "sk_test_abc123",
+      public_key: "pk_test_def456",
+      content_type: "application/x-www-form-urlencoded"
+
+  But, if you must, then you can specify it directly like
+
+    configs = %{
+      secret_key: "sk_test_abc123",
+      content_type: "application/x-www-form-urlencoded"
+    }
 
   """
+  def charge(body), do: charge(body, nil)
   def charge(body, configs) do
     post(Api.url <> "/charges", encode_body(body), headers(configs))
   end
@@ -48,12 +63,28 @@ defmodule StripePost.Api do
 
   ## Examples
 
+      iex> StripePost.Api.headers(%{content_type: "application/json", secret_key: "abc123"})
+      [{"Authorization", "Bearer abc123"}, {"Content-Type", "application/json"}]
+
       iex> StripePost.Api.headers(%{secret_key: "abc123"})
       [{"Authorization", "Bearer abc123"}, {"Content-Type", "application/x-www-form-urlencoded"}]
+
+      iex> StripePost.Api.headers(%{})
+      [{"Authorization", "Bearer sk_test_abc123"}, {"Content-Type", "application/x-www-form-urlencoded"}]
+
+      iex> StripePost.Api.headers()
+      [{"Authorization", "Bearer sk_test_abc123"}, {"Content-Type", "application/x-www-form-urlencoded"}]
+
   """
-  def headers(%{secret_key: secret_key}) do
-    [{"Authorization", "Bearer #{secret_key}"},
-     {"Content-Type", "application/x-www-form-urlencoded"}]
+  def headers(), do: headers(%{})
+  def headers(nil), do: headers(%{})
+  def headers(data) do
+    h = %{content_type: "application/x-www-form-urlencoded"}
+    |> Map.merge(app_headers())
+    |> Map.merge(reject_nil(data))
+
+    [{"Authorization", "Bearer #{h[:secret_key]}"},
+     {"Content-Type", h[:content_type]}]
   end
 
   @doc"""
@@ -70,4 +101,17 @@ defmodule StripePost.Api do
   """
   def encode_body(map), do: URI.encode_query(map)
 
+
+  defp app_headers() do
+    %{content_type: appenv(:content_type), secret_key: appenv(:secret_key)}
+    |> reject_nil
+  end
+
+  defp appenv(key), do: Application.get_env(:stripe_post, key)
+
+  defp reject_nil(map) do
+    map
+    |> Enum.reject(fn{_k,v} -> v == nil end)
+    |> Enum.into(%{})
+  end
 end

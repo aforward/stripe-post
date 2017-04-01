@@ -8,8 +8,19 @@ Add `stripe_post` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:stripe_post, "~> 0.1.0"}]
+  [{:stripe_post, "~> 0.2.0"}]
 end
+```
+
+## Configuration
+
+Within your configs, you will need to provide your
+[https://dashboard.stripe.com/account/apikeys](Stripe API Keys).  For example,
+
+```elixir
+ config :stripe_post,
+   secret_key: "sk_test_abc123"
+   public_key: "pk_test_abc123"
 ```
 
 Documentation can
