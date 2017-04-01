@@ -4,6 +4,7 @@ defmodule StripePost do
   """
 
   defdelegate post(url, body, headers), to: StripePost.Worker
+  defdelegate charge(body), to: StripePost.Worker
   defdelegate charge(body, configs), to: StripePost.Worker
 
 end

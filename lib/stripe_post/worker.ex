@@ -11,6 +11,7 @@ defmodule StripePost.Worker do
     GenServer.call(StripePost.Worker, {:post, url, body, headers})
   end
 
+  def charge(body), do: charge(body, nil)
   def charge(body, configs) do
     GenServer.call(StripePost.Worker, {:charge, body, configs})
   end
