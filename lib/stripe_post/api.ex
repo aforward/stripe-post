@@ -1,6 +1,23 @@
 defmodule StripePost.Api do
 
-  alias StripePost.Api
+  @doc"""
+  Retrieve data from the API using either :get or :post
+  """
+  def http(:get, %{source: source, headers: headers}), do: get(source, headers)
+  def http(:get, %{source: source}), do: get(source)
+  def http(:post, %{source: source, body: body, headers: headers}), do: post(source, body, headers)
+  def http(:post, %{source: source, body: body}), do: post(source, body)
+  def http(:post, %{source: source}), do: post(source)
+
+  @doc"""
+  Make an API call using GET.  Optionally provide any required headers
+  """
+  def get(source), do: get(source, nil)
+  def get(source, headers) do
+    source
+    |> HTTPoison.get(encode_headers(headers))
+    |> parse
+  end
 
   @doc"""
   Post a message to the Stripe API by providing all the necessary
@@ -12,39 +29,15 @@ defmodule StripePost.Api do
     Under error
     {:error, reason}
   """
-  def post(url, body, headers) do
-    case HTTPoison.post(url, body, headers) do
-      {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
-        {status_code, Poison.decode!(body)}
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, reason}
-    end
-  end
-
-  @doc"""
-  Charge an account with the following body configurations
-
-    body = %{amount: 10000, currency: "cad", description: "3 wozzle", source: "pk_abc_123"}
-
-  The configurations are optional, and can be (preferrably) configured as elixir configs,
-  like:
-
-    config :stripe_post,
-      secret_key: "sk_test_abc123",
-      public_key: "pk_test_def456",
-      content_type: "application/x-www-form-urlencoded"
-
-  But, if you must, then you can specify it directly like
-
-    configs = %{
-      secret_key: "sk_test_abc123",
-      content_type: "application/x-www-form-urlencoded"
-    }
-
-  """
-  def charge(body), do: charge(body, nil)
-  def charge(body, configs) do
-    post(Api.url <> "/charges", encode_body(body), headers(configs))
+  def post(source), do: post(source, %{}, %{})
+  def post(source, body), do: post(source, body, %{})
+  def post(source, body, headers) do
+    source
+    |> HTTPoison.post(
+         encode_body(headers[:body_type] || headers[:content_type], body),
+         encode_headers(headers)
+       )
+    |> parse
   end
 
   @doc"""
@@ -63,22 +56,22 @@ defmodule StripePost.Api do
 
   ## Examples
 
-      iex> StripePost.Api.headers(%{content_type: "application/json", secret_key: "abc123"})
+      iex> StripePost.Api.encode_headers(%{content_type: "application/json", secret_key: "abc123"})
       [{"Authorization", "Bearer abc123"}, {"Content-Type", "application/json"}]
 
-      iex> StripePost.Api.headers(%{secret_key: "abc123"})
+      iex> StripePost.Api.encode_headers(%{secret_key: "abc123"})
       [{"Authorization", "Bearer abc123"}, {"Content-Type", "application/x-www-form-urlencoded"}]
 
-      iex> StripePost.Api.headers(%{})
+      iex> StripePost.Api.encode_headers(%{})
       [{"Authorization", "Bearer sk_test_abc123"}, {"Content-Type", "application/x-www-form-urlencoded"}]
 
-      iex> StripePost.Api.headers()
+      iex> StripePost.Api.encode_headers()
       [{"Authorization", "Bearer sk_test_abc123"}, {"Content-Type", "application/x-www-form-urlencoded"}]
 
   """
-  def headers(), do: headers(%{})
-  def headers(nil), do: headers(%{})
-  def headers(data) do
+  def encode_headers(), do: encode_headers(%{})
+  def encode_headers(nil), do: encode_headers(%{})
+  def encode_headers(data) do
     h = %{content_type: "application/x-www-form-urlencoded"}
     |> Map.merge(app_headers())
     |> Map.merge(reject_nil(data))
@@ -98,9 +91,21 @@ defmodule StripePost.Api do
       iex> StripePost.Api.encode_body(%{a: "o ne"})
       "a=o+ne"
 
-  """
-  def encode_body(map), do: URI.encode_query(map)
+      iex> StripePost.Api.encode_body(nil, %{a: "o ne"})
+      "a=o+ne"
 
+      iex> StripePost.Api.encode_body("application/x-www-form-urlencoded", %{a: "o ne"})
+      "a=o+ne"
+
+      iex> StripePost.Api.encode_body("application/json", %{a: "b"})
+      "{\\"a\\":\\"b\\"}"
+
+  """
+  def encode_body(map), do: encode_body(nil, map)
+  def encode_body(nil, map), do: encode_body("application/x-www-form-urlencoded", map)
+  def encode_body("application/x-www-form-urlencoded", map), do: URI.encode_query(map)
+  def encode_body("application/json", map), do: Poison.encode!(map)
+  def encode_body(_, map), do: encode_body(nil, map)
 
   defp app_headers() do
     %{content_type: appenv(:content_type), secret_key: appenv(:secret_key)}
@@ -109,7 +114,14 @@ defmodule StripePost.Api do
 
   defp appenv(key), do: Application.get_env(:stripe_post, key)
 
-  defp reject_nil(map) do
+  defp parse({:ok, %HTTPoison.Response{body: body, status_code: status_code}}) do
+    {status_code, Poison.decode!(body)}
+  end
+  defp parse({:error, %HTTPoison.Error{reason: reason}}) do
+    {:error, reason}
+  end
+
+  def reject_nil(map) do
     map
     |> Enum.reject(fn{_k,v} -> v == nil end)
     |> Enum.into(%{})
