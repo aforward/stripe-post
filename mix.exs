@@ -14,6 +14,8 @@ defmodule StripePost.Mixfile do
      package: package(),
      source_url: @git_url,
      homepage_url: @home_url,
+     docs: [main: "StripePost",
+            extras: ["README.md"]],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps()]
@@ -41,6 +43,7 @@ defmodule StripePost.Mixfile do
     [{:mix_test_watch, "~> 0.3", only: :dev, runtime: false},
      {:poison, "~> 3.1.0"},
      {:httpoison, "~> 0.11.1"},
+     {:fn_expr, "~> 0.1.0"},
      {:ex_doc, ">= 0.0.0", only: :dev}]
   end
 

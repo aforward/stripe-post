@@ -1,5 +1,6 @@
 defmodule StripePost.Worker do
   use GenServer
+  use FnExpr
 
   alias StripePost.Client
   alias StripePost.Worker, as: W
@@ -31,9 +32,9 @@ defmodule StripePost.Worker do
       nil -> Client.create_customer(%{description: pubid})
       id -> Client.get_customer(id)
     end
-    |> (fn {:ok, customer} ->
+    |> invoke(fn {200, customer} ->
          {:reply, customer, state |> Map.put(pubid, customer["id"])}
-       end).()
+       end)
   end
 
   def handle_call(:reload, _from, _state) do
@@ -42,7 +43,7 @@ defmodule StripePost.Worker do
 
   defp zero_state(true) do
     Client.list_customers
-    |> (fn {:ok, customers} -> customers end).()
+    |> invoke(fn {:ok, customers} -> customers end)
     |> Enum.map(fn {description, %{"id" => id}} -> {description, id} end)
     |> Enum.into(%{})
   end
