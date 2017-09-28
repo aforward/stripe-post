@@ -22,6 +22,16 @@ defmodule StripePost.Client do
   Where the `source` is the payment token received from Stripe most likely
   in your client javascriopt.
 
+  You also now also authorize (without charging) an account by setting the
+  `capture` field to `false`.  For more details [auth and capture](https://stripe.com/docs/charges#auth-and-capture)
+
+      StripePost.charge(
+        %{amount: 10000,
+          currency: "cad",
+          description: "3 wozzle",
+          source: "pk_abc_123"
+          capture: false}
+      )
 
   The configurations are optional, and can be (preferrably) configured as elixir configs,
   like:
