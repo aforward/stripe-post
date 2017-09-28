@@ -23,11 +23,15 @@ defmodule StripePost.Api do
   Post a message to the Stripe API by providing all the necessary
   information.  The answer will be
 
-    If successful
-    {status_code, body}
+  If the call succeeds, the response will look like
 
-    Under error
-    {:error, reason}
+      {status_code, body}
+
+  Where the status_code is the response code from the API, e.g. 200
+
+  If there is an error, we will return something like
+
+      {:error, "some reason"}
   """
   def post(source), do: post(source, %{}, %{})
   def post(source, body), do: post(source, body, %{})
@@ -105,7 +109,7 @@ defmodule StripePost.Api do
   def encode_body(nil, map), do: encode_body("application/x-www-form-urlencoded", map)
   def encode_body("application/x-www-form-urlencoded", map), do: URI.encode_query(map)
   def encode_body("application/json", map), do: Poison.encode!(map)
-  def encode_body(_, map), do: encode_body(nil, map)
+  def encode_body(_encoding_type, map), do: encode_body(nil, map)
 
   defp app_headers() do
     %{content_type: appenv(:content_type), secret_key: appenv(:secret_key)}

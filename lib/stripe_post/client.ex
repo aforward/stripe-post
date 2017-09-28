@@ -12,22 +12,31 @@ defmodule StripePost.Client do
   @doc"""
   Charge an account with the following body configurations
 
-    body = %{amount: 10000, currency: "cad", description: "3 wozzle", source: "pk_abc_123"}
+      StripePost.charge(
+        %{amount: 10000,
+          currency: "cad",
+          description: "3 wozzle",
+          source: "pk_abc_123"}
+      )
+
+  Where the `source` is the payment token received from Stripe most likely
+  in your client javascriopt.
+
 
   The configurations are optional, and can be (preferrably) configured as elixir configs,
   like:
 
-    config :stripe_post,
-      secret_key: "sk_test_abc123",
-      public_key: "pk_test_def456",
-      content_type: "application/x-www-form-urlencoded"
+      config :stripe_post,
+        secret_key: "sk_test_abc123",
+        public_key: "pk_test_def456",
+        content_type: "application/x-www-form-urlencoded"
 
   But, if you must, then you can specify it directly like
 
-    configs = %{
-      secret_key: "sk_test_abc123",
-      content_type: "application/x-www-form-urlencoded"
-    }
+      configs = %{
+        secret_key: "sk_test_abc123",
+        content_type: "application/x-www-form-urlencoded"
+      }
 
   """
   def charge(body, configs \\ nil) do
@@ -37,7 +46,7 @@ defmodule StripePost.Client do
   @doc"""
   Create a customer with the following body configurations
 
-    body = %{description: "customer xxx", source: "pk_abc_123"}
+      body = %{description: "customer xxx", source: "pk_abc_123"}
 
   """
   def create_customer(body, configs \\ nil) do
@@ -46,7 +55,6 @@ defmodule StripePost.Client do
 
   @doc"""
   Retrieve a customer by his/her stripe ID
-
   """
   def get_customer(id, configs \\ nil) do
     Api.get(Api.url <> "/customers/#{id}", Api.encode_headers(configs))
@@ -55,7 +63,7 @@ defmodule StripePost.Client do
   @doc"""
   List all customer, if you don't provide a limit we will fetch them all
 
-    query_params = %{limit: 100, starting_after: "obj_pk_1234"}
+      query_params = %{limit: 100, starting_after: "obj_pk_1234"}
 
   """
   def list_customers(query_params \\ %{}, configs \\ nil) do
@@ -99,12 +107,11 @@ defmodule StripePost.Client do
   end
 
   defp clean_customers({:error, _}), do: nil
-  defp clean_customers({:ok,  %{"data" => customers}}) do
+  defp clean_customers({200,  %{"data" => customers}}) do
     customers
     |> Enum.map(fn(c) -> {c["description"], c} end)
     |> Enum.into(%{})
     |> (fn(mapped) -> {:ok, mapped} end).()
   end
-
 
 end
