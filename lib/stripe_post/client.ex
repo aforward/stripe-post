@@ -53,6 +53,61 @@ defmodule StripePost.Client do
     Api.post(Api.url <> "/charges", body, configs)
   end
 
+
+  @doc"""
+  Capture the payment of an existing, uncaptured, charge.
+  This is the second half of the two-step payment flow, where first
+  you created a charge with the capture option set to false.
+
+  For example, if you charged the following, but did NOT capture
+
+      StripePost.charge(
+        %{amount: 10000,
+          currency: "cad",
+          description: "3 wozzle",
+          source: "pk_abc_123"
+          capture: false}
+      )
+
+  The results will contain a charge ID, and captured should be false, for example
+
+      {"id": "ch_abc123",
+       "paid": true,
+       "status": "succeeded",
+       "captured": false}
+
+  When you are ready to capture the payment, use that charge "id", you can also
+  provide additional fields, for example:
+
+      StripePost.capture(
+        "ch_abc123",
+        %{amount: 10000,
+          application_fee: 100,
+          destination: 90210}
+      )
+
+  Please visit https://stripe.com/docs/api#capture_charge for more information
+
+  The configurations are optional, and can be (preferrably) configured as elixir configs,
+  like:
+
+      config :stripe_post,
+        secret_key: "sk_test_abc123",
+        public_key: "pk_test_def456",
+        content_type: "application/x-www-form-urlencoded"
+
+  But, if you must, then you can specify it directly like
+
+      configs = %{
+        secret_key: "sk_test_abc123",
+        content_type: "application/x-www-form-urlencoded"
+      }
+
+  """
+  def capture(charge_id, body \\ %{}, configs \\ nil) do
+    Api.post(Api.url <> "/charges/#{charge_id}/capture", body, configs)
+  end
+
   @doc"""
   Create a customer with the following body configurations
 

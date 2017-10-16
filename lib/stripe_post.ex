@@ -36,6 +36,37 @@ defmodule StripePost do
   defdelegate charge(body), to: StripePost.Client
 
   @doc"""
+  Capture the payment of an existing, uncaptured, charge.
+  This is the second half of the two-step payment flow, where first
+  you created a charge with the capture option set to false.
+
+  For example, if you charged the following, but did NOT capture
+
+      StripePost.charge(
+        %{amount: 10000,
+          currency: "cad",
+          description: "3 wozzle",
+          source: "pk_abc_123"
+          capture: false}
+      )
+
+  The results will contain a charge ID, and captured should be false, for example
+
+      {"id": "ch_abc123",
+       "paid": true,
+       "status": "succeeded",
+       "captured": false}
+
+  When you are ready to capture the payment, use that charge "id", you can also
+  provide additional fields, for example:
+
+      StripePost.capture("ch_abc123")
+
+  """
+  defdelegate capture(charge_id), to: StripePost.Client
+
+
+  @doc"""
   Sync customer information directly from Stripe into Worder.
   This will lookup all customers in Stripe for easy access within
   this library.
