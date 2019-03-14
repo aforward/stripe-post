@@ -1,9 +1,9 @@
 defmodule StripePost do
-  @moduledoc"""
+  @moduledoc """
   A minimal library for posting messages to the Stripe API.
   """
 
-  @doc"""
+  @doc """
   Charge an account with the following body configurations
 
       StripePost.charge(
@@ -35,7 +35,7 @@ defmodule StripePost do
   """
   defdelegate charge(body), to: StripePost.Client
 
-  @doc"""
+  @doc """
   Capture the payment of an existing, uncaptured, charge.
   This is the second half of the two-step payment flow, where first
   you created a charge with the capture option set to false.
@@ -65,8 +65,7 @@ defmodule StripePost do
   """
   defdelegate capture(charge_id), to: StripePost.Client
 
-
-  @doc"""
+  @doc """
   Sync customer information directly from Stripe into Worder.
   This will lookup all customers in Stripe for easy access within
   this library.
@@ -81,7 +80,7 @@ defmodule StripePost do
   """
   defdelegate reload, to: StripePost.Worker
 
-  @doc"""
+  @doc """
   Retrieve all customers stored within this process
 
       StripePost.customers
@@ -105,7 +104,7 @@ defmodule StripePost do
   """
   defdelegate customers, to: StripePost.Worker
 
-  @doc"""
+  @doc """
   Retrieve (and create if missing) the customer by the provided
   (and globally unique aka "public id") name.
 
@@ -113,5 +112,4 @@ defmodule StripePost do
 
   """
   defdelegate customer(name), to: StripePost.Worker
-
 end

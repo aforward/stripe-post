@@ -9,7 +9,7 @@ defmodule StripePost.Application do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(StripePost.Worker, []),
+      worker(StripePost.Worker, [])
     ]
 
     opts = [strategy: :one_for_one, name: StripePost.Supervisor]

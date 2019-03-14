@@ -1,5 +1,5 @@
 defmodule StripePost.Client do
-  @moduledoc"""
+  @moduledoc """
   Access service functionality through Elixir functions,
   wrapping the underlying HTTP API calls.
 
@@ -9,7 +9,7 @@ defmodule StripePost.Client do
 
   alias StripePost.{Api, Url}
 
-  @doc"""
+  @doc """
   Charge an account with the following body configurations
 
       StripePost.charge(
@@ -54,7 +54,7 @@ defmodule StripePost.Client do
     |> Api.post(body, configs)
   end
 
-  @doc"""
+  @doc """
   Capture the payment of an existing, uncaptured, charge.
   This is the second half of the two-step payment flow, where first
   you created a charge with the capture option set to false.
@@ -109,7 +109,7 @@ defmodule StripePost.Client do
     |> Api.post(body, configs)
   end
 
-  @doc"""
+  @doc """
   Create a customer with the following body configurations
 
       body = %{description: "customer xxx", source: "pk_abc_123"}
@@ -120,7 +120,7 @@ defmodule StripePost.Client do
     |> Api.post(body, configs)
   end
 
-  @doc"""
+  @doc """
   Retrieve a customer by his/her stripe ID
   """
   def get_customer(id, configs \\ nil) do
@@ -128,7 +128,7 @@ defmodule StripePost.Client do
     |> Api.get(Api.encode_headers(configs))
   end
 
-  @doc"""
+  @doc """
   List all customer, if you don't provide a limit we will fetch them all
 
       query_params = %{limit: 100, starting_after: "obj_pk_1234"}
@@ -147,39 +147,43 @@ defmodule StripePost.Client do
     |> do_list_customers(configs)
     |> all_customers([], query_params, configs)
   end
+
   defp all_customers(
-    {:ok, %{"data" => new_customers, "has_more" => false}},
-    acc,
-    _,
-    _) do
+         {:ok, %{"data" => new_customers, "has_more" => false}},
+         acc,
+         _,
+         _
+       ) do
     {:ok, %{"data" => acc ++ new_customers, "has_more" => false}}
   end
-  defp all_customers(
-    {:ok, %{"data" => new_customers, "has_more" => true}},
-    acc,
-    query_params,
-    configs) do
 
+  defp all_customers(
+         {:ok, %{"data" => new_customers, "has_more" => true}},
+         acc,
+         query_params,
+         configs
+       ) do
     new_customers
-    |> List.last
+    |> List.last()
     |> Map.get("id")
-    |> (fn(starting_after) -> query_params |> Map.put(:starting_after, starting_after) end).()
+    |> (fn starting_after -> query_params |> Map.put(:starting_after, starting_after) end).()
     |> do_list_customers(configs)
     |> all_customers(acc ++ new_customers, query_params, configs)
   end
+
   defp all_customers(resp, _acc, _query_params, _configs), do: resp
 
   defp do_list_customers(query_params, configs) do
-    Url.generate(resource: "/customers?" <> URI.encode_query(query_params |> Api.reject_nil))
+    Url.generate(resource: "/customers?" <> URI.encode_query(query_params |> Api.reject_nil()))
     |> Api.get(Api.encode_headers(configs))
   end
 
   defp clean_customers({:error, _}), do: nil
-  defp clean_customers({200,  %{"data" => customers}}) do
-    customers
-    |> Enum.map(fn(c) -> {c["description"], c} end)
-    |> Enum.into(%{})
-    |> (fn(mapped) -> {:ok, mapped} end).()
-  end
 
+  defp clean_customers({200, %{"data" => customers}}) do
+    customers
+    |> Enum.map(fn c -> {c["description"], c} end)
+    |> Enum.into(%{})
+    |> (fn mapped -> {:ok, mapped} end).()
+  end
 end

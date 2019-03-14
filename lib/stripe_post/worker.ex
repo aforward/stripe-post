@@ -5,7 +5,6 @@ defmodule StripePost.Worker do
   alias StripePost.Client
   alias StripePost.Worker, as: W
 
-
   ### Public API
 
   def start_link() do
@@ -15,7 +14,6 @@ defmodule StripePost.Worker do
   def reload(), do: GenServer.call(W, :reload)
   def customers(), do: GenServer.call(W, :customers)
   def customer(pubid), do: GenServer.call(W, {:customer, pubid})
-
 
   ### Server Callbacks
 
@@ -33,8 +31,8 @@ defmodule StripePost.Worker do
       id -> Client.get_customer(id)
     end
     |> invoke(fn {200, customer} ->
-         {:reply, customer, state |> Map.put(pubid, customer["id"])}
-       end)
+      {:reply, customer, state |> Map.put(pubid, customer["id"])}
+    end)
   end
 
   def handle_call(:reload, _from, _state) do
@@ -42,13 +40,13 @@ defmodule StripePost.Worker do
   end
 
   defp zero_state(true) do
-    Client.list_customers
+    Client.list_customers()
     |> invoke(fn {:ok, customers} -> customers end)
     |> Enum.map(fn {description, %{"id" => id}} -> {description, id} end)
     |> Enum.into(%{})
   end
+
   defp zero_state(_) do
     %{}
   end
-
 end

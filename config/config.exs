@@ -16,6 +16,6 @@ use Mix.Config
 #   Application.get_env(:stripe_post, :content_type)
 #
 
-if (File.exists?("./config/#{Mix.env}.exs")) do
-  import_config "#{Mix.env}.exs"
+if File.exists?("./config/#{Mix.env()}.exs") do
+  import_config "#{Mix.env()}.exs"
 end

@@ -1,6 +1,5 @@
 defmodule StripePost.Api do
-
-  @moduledoc"""
+  @moduledoc """
   Take several options, and an HTTP method and send the request to StripePost
 
   The available options are comprised of those to helper generate the StripePost
@@ -20,7 +19,7 @@ defmodule StripePost.Api do
 
   alias StripePost.{Content, Request, Response}
 
-  @doc"""
+  @doc """
   Issues an HTTP request with the given method to the given url_opts.
 
   Args:
@@ -40,33 +39,37 @@ defmodule StripePost.Api do
   """
   def request(method, opts \\ []) do
     opts
-    |> Request.create
+    |> Request.create()
     |> Request.send(method)
-    |> Response.normalize
-    |> Content.type
-    |> Content.decode
+    |> Response.normalize()
+    |> Content.type()
+    |> Content.decode()
   end
 
-  @doc"""
+  @doc """
   Retrieve data from the API using either :get or :post
   """
   def http(:get, %{source: source, headers: headers}), do: get(source, headers)
   def http(:get, %{source: source}), do: get(source)
-  def http(:post, %{source: source, body: body, headers: headers}), do: post(source, body, headers)
+
+  def http(:post, %{source: source, body: body, headers: headers}),
+    do: post(source, body, headers)
+
   def http(:post, %{source: source, body: body}), do: post(source, body)
   def http(:post, %{source: source}), do: post(source)
 
-  @doc"""
+  @doc """
   Make an API call using GET.  Optionally provide any required headers
   """
   def get(source), do: get(source, nil)
+
   def get(source, headers) do
     source
     |> HTTPoison.get(encode_headers(headers))
     |> parse
   end
 
-  @doc"""
+  @doc """
   Post a message to the Stripe API by providing all the necessary
   information.  The answer will be
 
@@ -82,16 +85,17 @@ defmodule StripePost.Api do
   """
   def post(source), do: post(source, %{}, %{})
   def post(source, body), do: post(source, body, %{})
+
   def post(source, body, headers) do
     source
     |> HTTPoison.post(
-         Content.encode(body, headers[:body_type] || headers[:content_type]),
-         encode_headers(headers)
-       )
+      Content.encode(body, headers[:body_type] || headers[:content_type]),
+      encode_headers(headers)
+    )
     |> parse
   end
 
-  @doc"""
+  @doc """
   Build the headers for your API
 
   ## Examples
@@ -111,13 +115,14 @@ defmodule StripePost.Api do
   """
   def encode_headers(), do: encode_headers(%{})
   def encode_headers(nil), do: encode_headers(%{})
-  def encode_headers(data) do
-    h = %{content_type: "application/x-www-form-urlencoded"}
-    |> Map.merge(app_headers())
-    |> Map.merge(reject_nil(data))
 
-    [{"Authorization", "Bearer #{h[:secret_key]}"},
-     {"Content-Type", h[:content_type]}]
+  def encode_headers(data) do
+    h =
+      %{content_type: "application/x-www-form-urlencoded"}
+      |> Map.merge(app_headers())
+      |> Map.merge(reject_nil(data))
+
+    [{"Authorization", "Bearer #{h[:secret_key]}"}, {"Content-Type", h[:content_type]}]
   end
 
   defp app_headers() do
@@ -130,13 +135,14 @@ defmodule StripePost.Api do
   defp parse({:ok, %HTTPoison.Response{body: body, status_code: status_code}}) do
     {status_code, Jason.decode!(body)}
   end
+
   defp parse({:error, %HTTPoison.Error{reason: reason}}) do
     {:error, reason}
   end
 
   def reject_nil(map) do
     map
-    |> Enum.reject(fn{_k,v} -> v == nil end)
+    |> Enum.reject(fn {_k, v} -> v == nil end)
     |> Enum.into(%{})
   end
 end
