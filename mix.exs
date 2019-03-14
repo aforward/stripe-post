@@ -28,7 +28,7 @@ defmodule StripePost.Mixfile do
 
   defp deps do
     [{:mix_test_watch, "~> 0.3", only: :dev, runtime: false},
-     {:poison, "~> 3.1.0"},
+     {:jason, "~> 1.0"},
      {:httpoison, "~> 0.11.1"},
      {:version_tasks, "~> 0.10"},
      {:fn_expr, "~> 0.2"},
