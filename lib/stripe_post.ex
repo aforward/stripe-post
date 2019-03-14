@@ -27,7 +27,7 @@ defmodule StripePost do
 
   But, if you must, then you can specify it directly like
 
-      configs = %{
+      opts = %{
         secret_key: "sk_test_abc123",
         content_type: "application/x-www-form-urlencoded"
       }

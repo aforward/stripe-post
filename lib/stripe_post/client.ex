@@ -43,7 +43,7 @@ defmodule StripePost.Client do
 
   But, if you must, then you can specify it directly like
 
-      configs = %{
+      opts = %{
         secret_key: "sk_test_abc123",
         content_type: "application/x-www-form-urlencoded"
       }
@@ -130,18 +130,18 @@ defmodule StripePost.Client do
       query_params = %{limit: 100, starting_after: "obj_pk_1234"}
 
   """
-  def list_customers(query_params \\ %{}, configs \\ nil) do
+  def list_customers(query_params \\ %{}, opts \\ []) do
     case query_params[:limit] do
-      nil -> all_customers(:first, query_params, configs)
-      _ -> do_list_customers(query_params, configs)
+      nil -> all_customers(:first, query_params, opts)
+      _ -> do_list_customers(query_params, opts)
     end
     |> clean_customers
   end
 
-  defp all_customers(:first, query_params, configs) do
+  defp all_customers(:first, query_params, opts) do
     query_params
-    |> do_list_customers(configs)
-    |> all_customers([], query_params, configs)
+    |> do_list_customers(opts)
+    |> all_customers([], query_params, opts)
   end
 
   defp all_customers(
@@ -157,17 +157,17 @@ defmodule StripePost.Client do
          {:ok, %{"data" => new_customers, "has_more" => true}},
          acc,
          query_params,
-         configs
+         opts
        ) do
     new_customers
     |> List.last()
     |> Map.get(:id)
     |> (fn starting_after -> query_params |> Map.put(:starting_after, starting_after) end).()
-    |> do_list_customers(configs)
-    |> all_customers(acc ++ new_customers, query_params, configs)
+    |> do_list_customers(opts)
+    |> all_customers(acc ++ new_customers, query_params, opts)
   end
 
-  defp all_customers(resp, _acc, _query_params, _configs), do: resp
+  defp all_customers(resp, _acc, _query_params, _opts), do: resp
 
   defp do_list_customers(query_params, opts) do
     Api.request(

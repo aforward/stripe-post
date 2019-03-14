@@ -14,7 +14,7 @@ end
 
 ## Configuration
 
-Within your configs, you will need to provide your
+Within your opts, you will need to provide your
 [https://dashboard.stripe.com/account/apikeys](Stripe API Keys).  For example,
 
 ```elixir
