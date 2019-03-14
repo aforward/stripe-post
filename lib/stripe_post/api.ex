@@ -1,5 +1,52 @@
 defmodule StripePost.Api do
 
+  @moduledoc"""
+  Take several options, and an HTTP method and send the request to StripePost
+
+  The available options are comprised of those to helper generate the StripePost
+  URL, to extract data for the request and authenticate your API call.
+
+  URL `opts` (to help create the resolved StripePost URL):
+    * `:base` - The base URL which defaults to `http://localhost:4000/v1`
+    * `:resource` - The requested resource (e.g. /domains)
+
+  Data `opts` (to send data along with the request)
+    * `:body` - The encoded body of the request (typically provided in JSON)
+    * `:params` - The query parameters of the request
+
+  Header `opts` (to send meta-data along with the request)
+    * `:api_key` - Defaults to the test API key `key-3ax6xnjp29jd6fds4gc373sgvjxteol0`
+  """
+
+  alias StripePost.{Content, Request, Response}
+
+  @doc"""
+  Issues an HTTP request with the given method to the given url_opts.
+
+  Args:
+    * `method` - HTTP method as an atom (`:get`, `:head`, `:post`, `:put`, `:delete`, etc.)
+    * `opts` - A keyword list of options to help create the URL, provide the body and/or query params
+
+  The options above can be defaulted using `Mix.Config` configurations,
+  please refer to `StripePost` for more details on configuring this library.
+
+  This function returns `{<status_code>, response}` if the request is successful, and
+  `{:error, reason}` otherwise.
+
+  ## Examples
+
+      StripePost.Api.request(:get, resource: "customers", bearer_auth: "sk_test_ABC123")
+
+  """
+  def request(method, opts \\ []) do
+    opts
+    |> Request.create
+    |> Request.send(method)
+    |> Response.normalize
+    |> Content.type
+    |> Content.decode
+  end
+
   @doc"""
   Retrieve data from the API using either :get or :post
   """
@@ -38,7 +85,7 @@ defmodule StripePost.Api do
   def post(source, body, headers) do
     source
     |> HTTPoison.post(
-         encode_body(headers[:body_type] || headers[:content_type], body),
+         Content.encode(body, headers[:body_type] || headers[:content_type]),
          encode_headers(headers)
        )
     |> parse
@@ -72,33 +119,6 @@ defmodule StripePost.Api do
     [{"Authorization", "Bearer #{h[:secret_key]}"},
      {"Content-Type", h[:content_type]}]
   end
-
-  @doc"""
-  Encode the provided hash map for the URL.
-
-  ## Examples
-
-      iex> StripePost.Api.encode_body(%{a: "one", b: "two"})
-      "a=one&b=two"
-
-      iex> StripePost.Api.encode_body(%{a: "o ne"})
-      "a=o+ne"
-
-      iex> StripePost.Api.encode_body(nil, %{a: "o ne"})
-      "a=o+ne"
-
-      iex> StripePost.Api.encode_body("application/x-www-form-urlencoded", %{a: "o ne"})
-      "a=o+ne"
-
-      iex> StripePost.Api.encode_body("application/json", %{a: "b"})
-      "{\\"a\\":\\"b\\"}"
-
-  """
-  def encode_body(map), do: encode_body(nil, map)
-  def encode_body(nil, map), do: encode_body("application/x-www-form-urlencoded", map)
-  def encode_body("application/x-www-form-urlencoded", map), do: URI.encode_query(map)
-  def encode_body("application/json", map), do: Jason.encode!(map)
-  def encode_body(_encoding_type, map), do: encode_body(nil, map)
 
   defp app_headers() do
     %{content_type: appenv(:content_type), secret_key: appenv(:secret_key)}
