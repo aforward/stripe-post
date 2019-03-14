@@ -45,17 +45,6 @@ defmodule StripePost.Api do
   end
 
   @doc"""
-  The Stripe API URL
-
-  ## Examples
-
-      iex> StripePost.Api.url
-      "https://api.stripe.com/v1"
-
-  """
-  def url(), do: "https://api.stripe.com/v1"
-
-  @doc"""
   Build the headers for your API
 
   ## Examples

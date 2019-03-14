@@ -7,7 +7,7 @@ defmodule StripePost.Client do
   code to access your API.
   """
 
-  alias StripePost.Api
+  alias StripePost.{Api, Url}
 
   @doc"""
   Charge an account with the following body configurations
@@ -50,9 +50,9 @@ defmodule StripePost.Client do
 
   """
   def charge(body, configs \\ nil) do
-    Api.post(Api.url <> "/charges", body, configs)
+    Url.generate(resource: "charges")
+    |> Api.post(body, configs)
   end
-
 
   @doc"""
   Capture the payment of an existing, uncaptured, charge.
@@ -105,7 +105,8 @@ defmodule StripePost.Client do
 
   """
   def capture(charge_id, body \\ %{}, configs \\ nil) do
-    Api.post(Api.url <> "/charges/#{charge_id}/capture", body, configs)
+    Url.generate(resource: ["charges", charge_id, "capture"])
+    |> Api.post(body, configs)
   end
 
   @doc"""
@@ -115,14 +116,16 @@ defmodule StripePost.Client do
 
   """
   def create_customer(body, configs \\ nil) do
-    Api.post(Api.url <> "/customers", body, configs)
+    Url.generate(resource: "customers")
+    |> Api.post(body, configs)
   end
 
   @doc"""
   Retrieve a customer by his/her stripe ID
   """
   def get_customer(id, configs \\ nil) do
-    Api.get(Api.url <> "/customers/#{id}", Api.encode_headers(configs))
+    Url.generate(resource: ["customers", id])
+    |> Api.get(Api.encode_headers(configs))
   end
 
   @doc"""
@@ -167,7 +170,7 @@ defmodule StripePost.Client do
   defp all_customers(resp, _acc, _query_params, _configs), do: resp
 
   defp do_list_customers(query_params, configs) do
-    Api.url <> "/customers?" <> URI.encode_query(query_params |> Api.reject_nil)
+    Url.generate(resource: "/customers?" <> URI.encode_query(query_params |> Api.reject_nil))
     |> Api.get(Api.encode_headers(configs))
   end
 
