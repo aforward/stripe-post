@@ -15,7 +15,7 @@ end
 ## Configuration
 
 Within your opts, you will need to provide your
-[https://dashboard.stripe.com/account/apikeys](Stripe API Keys).  For example,
+(Stripe API Keys)[https://dashboard.stripe.com/account/apikeys].  For example,
 
 ```elixir
  config :stripe_post,
