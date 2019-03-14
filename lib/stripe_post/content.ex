@@ -13,7 +13,7 @@ defmodule StripePost.Content do
       {:ok, "<xml />", "application/xml"}
 
       iex> StripePost.Content.type([])
-      "application/json"
+      "application/x-www-form-urlencoded"
 
       iex> StripePost.Content.type([{"Content-Type", "plain/text"}])
       "plain/text"
@@ -25,7 +25,7 @@ defmodule StripePost.Content do
       "application/xml"
   """
   def type({ok, body, headers}), do: {ok, body, type(headers)}
-  def type([]), do: "application/json"
+  def type([]), do: "application/x-www-form-urlencoded"
   def type([{"Content-Type", val} | _]), do: val |> String.split(";") |> List.first()
   def type([_ | t]), do: t |> type
 

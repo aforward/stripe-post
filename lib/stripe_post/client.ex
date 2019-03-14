@@ -7,7 +7,7 @@ defmodule StripePost.Client do
   code to access your API.
   """
 
-  alias StripePost.{Api, Url}
+  alias StripePost.Api
 
   @doc """
   Charge an account with the following body configurations
@@ -49,9 +49,8 @@ defmodule StripePost.Client do
       }
 
   """
-  def charge(body, configs \\ nil) do
-    Url.generate(resource: "charges")
-    |> Api.post(body, configs)
+  def charge(body, opts \\ nil) do
+    Api.request(:post, [resource: "charges", body: body], opts)
   end
 
   @doc """
@@ -88,7 +87,7 @@ defmodule StripePost.Client do
 
   Please visit https://stripe.com/docs/api#capture_charge for more information
 
-  The configurations are optional, and can be (preferrably) configured as elixir configs,
+  The configurations are optional, and can be (preferrably) configured as elixir opts,
   like:
 
       config :stripe_post,
@@ -98,15 +97,14 @@ defmodule StripePost.Client do
 
   But, if you must, then you can specify it directly like
 
-      configs = %{
+      opts = %{
         secret_key: "sk_test_abc123",
         content_type: "application/x-www-form-urlencoded"
       }
 
   """
-  def capture(charge_id, body \\ %{}, configs \\ nil) do
-    Url.generate(resource: ["charges", charge_id, "capture"])
-    |> Api.post(body, configs)
+  def capture(charge_id, body \\ %{}, opts \\ nil) do
+    Api.request(:post, [resource: ["charges", charge_id, "capture"], body: body], opts)
   end
 
   @doc """
@@ -115,17 +113,15 @@ defmodule StripePost.Client do
       body = %{description: "customer xxx", source: "pk_abc_123"}
 
   """
-  def create_customer(body, configs \\ nil) do
-    Url.generate(resource: "customers")
-    |> Api.post(body, configs)
+  def create_customer(body, opts \\ nil) do
+    Api.request(:post, [resource: "customers", body: body], opts)
   end
 
   @doc """
   Retrieve a customer by his/her stripe ID
   """
-  def get_customer(id, configs \\ nil) do
-    Url.generate(resource: ["customers", id])
-    |> Api.get(Api.encode_headers(configs))
+  def get_customer(id, opts \\ nil) do
+    Api.request(:post, [resource: ["customers", id]], opts)
   end
 
   @doc """
@@ -165,7 +161,7 @@ defmodule StripePost.Client do
        ) do
     new_customers
     |> List.last()
-    |> Map.get("id")
+    |> Map.get(:id)
     |> (fn starting_after -> query_params |> Map.put(:starting_after, starting_after) end).()
     |> do_list_customers(configs)
     |> all_customers(acc ++ new_customers, query_params, configs)
@@ -173,17 +169,26 @@ defmodule StripePost.Client do
 
   defp all_customers(resp, _acc, _query_params, _configs), do: resp
 
-  defp do_list_customers(query_params, configs) do
-    Url.generate(resource: "/customers?" <> URI.encode_query(query_params |> Api.reject_nil()))
-    |> Api.get(Api.encode_headers(configs))
+  defp do_list_customers(query_params, opts) do
+    Api.request(
+      :get,
+      [resource: "/customers?" <> URI.encode_query(query_params |> reject_nil())],
+      opts
+    )
   end
 
   defp clean_customers({:error, _}), do: nil
 
-  defp clean_customers({200, %{"data" => customers}}) do
+  defp clean_customers({200, %{data: customers}}) do
     customers
-    |> Enum.map(fn c -> {c["description"], c} end)
+    |> Enum.map(fn c -> {c[:description], c} end)
     |> Enum.into(%{})
     |> (fn mapped -> {:ok, mapped} end).()
+  end
+
+  defp reject_nil(map) do
+    map
+    |> Enum.reject(fn {_k, v} -> v == nil end)
+    |> Enum.into(%{})
   end
 end

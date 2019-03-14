@@ -15,7 +15,7 @@ defmodule StripePost.Request do
 
   defstruct url: nil, body: "", headers: [], http_opts: []
 
-  alias StripePost.{Request, Opts, Url, Content}
+  alias StripePost.{Opts, Request, Opts, Url, Content}
 
   @doc """
   Build a HTTP request based on the provided options, which comprise
@@ -25,7 +25,7 @@ defmodule StripePost.Request do
       iex> StripePost.Request.create(resource: "logs").url
       "https://api.stripe.com/v1/logs"
 
-      iex> StripePost.Request.create(body: "What is life?").body
+      iex> StripePost.Request.create(body: "What is life?", headers: [{"Content-Type", "application/json"}]).body
       "\\"What is life?\\""
 
       iex> StripePost.Request.create(body: "What you make it!", headers: [{"Content-Type", "application/mystuff"}]).body
@@ -42,6 +42,9 @@ defmodule StripePost.Request do
 
       iex> StripePost.Request.create(secret_key: "key-abc456").headers
       [{"Authorization", "Bearer key-abc456"}]
+
+      iex> StripePost.Request.create(secret_key: "key-abc456", content_type: "x").headers
+      [{"Authorization", "Bearer key-abc456"}, {"Content-Type", "x"}]
 
       iex> StripePost.Request.create(secret_key: "key-abc456", headers: [{"Content-Type", "application/json"}]).headers
       [{"Authorization", "Bearer key-abc456"}, {"Content-Type", "application/json"}]
@@ -93,13 +96,18 @@ defmodule StripePost.Request do
         auth_header("Bearer", opts[:bearer_auth]) ||
         []
 
-    auth_headers ++ (opts[:headers] || [])
+    content_headers = content_header(opts[:content_type]) || []
+
+    auth_headers ++ content_headers ++ (opts[:headers] || [])
   end
 
   defp auth_header(_type, nil), do: nil
   defp auth_header("Basic", ":"), do: nil
   defp auth_header("Basic", val), do: [{"Authorization", "Basic #{Base.encode64(val)}"}]
   defp auth_header(type, val), do: [{"Authorization", "#{type} #{val}"}]
+
+  defp content_header(nil), do: nil
+  defp content_header(content_type), do: [{"Content-Type", content_type}]
 
   defp http_opts(opts) do
     opts
@@ -113,6 +121,6 @@ defmodule StripePost.Request do
       :bearer_auth,
       :headers
     ])
-    |> Opts.merge(:http_opts)
+    |> Opts.merge([], :http_opts)
   end
 end

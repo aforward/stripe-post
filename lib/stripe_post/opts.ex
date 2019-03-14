@@ -8,40 +8,6 @@ defmodule StripePost.Opts do
   """
 
   @doc """
-  Merge the `provided_opts` with the configured options from the
-  `:stripe_post` application env, available from `StripePost.Opts.env/0`
-
-  ## Example
-
-      StripePost.Opts.merge([resource: "messages"])
-  """
-  def merge(provided_opts), do: merge(provided_opts, env(), nil)
-
-  @doc """
-  Merge the `provided_opts` with an env `configured_key`.  Or, merge those
-  `provided_opts` with the default application envs in `StripePost.Opts.env/0`,
-  but only provide values for the `expected_keys`.
-
-  ## Example
-
-      # Merge the provided keyword list with the Application env for `:stripe_post`
-      # but only take the `expected_keys` of `[:base, :resource]`
-      StripePost.Opts.merge([resource: "messages"], [:base, :resource])
-
-      # Merge the provided keyword list with the `:http_opts` from the
-      # Application env for `:stripe_post`
-      StripePost.Opts.merge([resource: "messages"], :http_opts)
-  """
-  def merge(provided_opts, configured_key_or_expected_keys)
-      when is_atom(configured_key_or_expected_keys) do
-    merge(provided_opts, env(configured_key_or_expected_keys), nil)
-  end
-
-  def merge(provided_opts, expected_keys) when is_list(expected_keys) do
-    merge(provided_opts, env(), expected_keys)
-  end
-
-  @doc """
   Merge the `provided_opts` with the `configured_opts`.  Only provide
   values for the `expected_keys` (if `nil` then merge all keys from
   `configured_opts`).
@@ -60,8 +26,15 @@ defmodule StripePost.Opts do
       ...>   nil)
       [base: "http://localhost:4000/v2", timeout: 5000, resource: "messages"]
 
+      iex> StripePost.Opts.merge(
+      ...>   [resource: "messages"],
+      ...>   nil,
+      ...>   nil)
+      [reload_on_init: false, public_key: "pk_test_def456", secret_key: "sk_test_abc123", resource: "messages"]
   """
-  def merge(provided_opts, nil, _), do: provided_opts
+  def merge(provided_opts), do: merge(provided_opts, nil, nil)
+  def merge(provided_opts, configured_opts), do: merge(provided_opts, configured_opts, nil)
+  def merge(provided_opts, nil, expected_keys), do: merge(provided_opts, env(), expected_keys)
 
   def merge(provided_opts, configured_opts, expected_keys) do
     case expected_keys do
